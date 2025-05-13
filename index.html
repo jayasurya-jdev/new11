@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Travel Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCG0lH2bcBsNS2UFrBJ1LGpzqDK_31DHrM&libraries=places"></script>
+    <!-- Font Awesome for Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="flex flex-col items-center justify-center bg-white rounded-3xl mb-10">
+        <!-- Header Section -->
+        <div class="w-full relative p-8">
+            <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+            <div class="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4">
+                <h1 class="text-2xl md:text-4xl font-bold text-purple-300">AI Travel Planner</h1>
+                <p class="text-base md:text-xl text-white mt-4">
+                    Plan your dream trip with personalized itineraries.
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full flex flex-col gap-4 mt-6 max-w-[1400px] mx-auto min-h-[60vh] p-8">
+            <!-- Form Section -->
+            <div class="flex flex-col md:flex-row md:gap-4">
+                <!-- From Input -->
+                <div class="form-group w-full md:w-1/2">
+                    <label class="block text-sm font-medium text-gray-700">From</label>
+                    <input
+                        id="from"
+                        type="text"
+                        placeholder="Enter departure city"
+                        class="w-full text-base mt-2 px-2 py-1 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                </div>
+
+                <!-- To Input -->
+                <div class="form-group w-full md:w-1/2">
+                    <label class="block text-sm font-medium text-gray-700">To</label>
+                    <input
+                        id="to"
+                        type="text"
+                        placeholder="Enter destination city"
+                        class="w-full text-base mt-2 px-2 py-1 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row md:gap-4">
+                <!-- Travelers Input -->
+                <div class="form-group w-full md:w-1/2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Number of Travelers: <span id="travelers-value">1</span>
+                    </label>
+                    <input
+                        id="travelers"
+                        type="range"
+                        min="1"
+                        max="10"
+                        value="1"
+                        class="w-full"
+                        oninput="document.getElementById('travelers-value').innerText = this.value"
+                    />
+                </div>
+
+                <!-- Duration Input -->
+                <div class="form-group w-full md:w-1/2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Duration (Days): <span id="duration-value">1</span>
+                    </label>
+                    <input
+                        id="duration"
+                        type="range"
+                        min="1"
+                        max="30"
+                        value="1"
+                        class="w-full"
+                        oninput="document.getElementById('duration-value').innerText = this.value"
+                    />
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700">Preferences</label>
+                <div id="preferences-container" class="flex flex-wrap gap-3 mt-2">
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Spiritual"
+                    >
+                        Spiritual
+                    </button>
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Adventure"
+                    >
+                        Adventure
+                    </button>
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Meditation"
+                    >
+                        Meditation
+                    </button>
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Mountains"
+                    >
+                        Mountains
+                    </button>
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Culture"
+                    >
+                        Culture
+                    </button>
+                    <button
+                        class="preference-btn bg-gray-100 px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                        data-value="Photography"
+                    >
+                        Photography
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+                id="plan-trip"
+                class="w-fit py-2 px-3 bg-purple-600 ml-auto text-white rounded-lg shadow-md hover:bg-purple-700 transition duration-300"
+            >
+                Plan Trip
+            </button>
+        </div>
+
+        <!-- Itinerary Section -->
+        <div id="itinerary" class="w-full mt-6 bg-white p-6 rounded-lg shadow-md hidden">
+            <h2 class="text-xl font-bold mb-4" id="itinerary-title"></h2>
+            <div id="itinerary-content" class="mb-4"></div>
+            <div class="flex justify-end gap-4">
+                <!-- Save Button -->
+                <button
+                    id="save-pdf"
+                    class="flex items-center gap-2 text-sm py-1 px-4 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"
+                >
+                    <i class="fas fa-download"></i> Save
+                </button>
+                <!-- Show Map Button -->
+                <button
+                    id="show-map"
+                    class="flex items-center gap-2 text-sm py-1 px-4 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+                >
+                    <i class="fas fa-map-marker-alt"></i> Show Map
+                </button>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div id="map-container" class="w-full h-[500px] mt-6 hidden"></div>
+    </div>
+
+    <script>
+        const API_URL = "https://madurawelcome.in"; // Replace with your API endpoint
+        let map, directionsService, directionsRenderer;
+
+        // Initialize Google Places Autocomplete
+        function initializeAutocomplete() {
+            const fromInput = document.getElementById('from');
+            const toInput = document.getElementById('to');
+
+            new google.maps.places.Autocomplete(fromInput);
+            new google.maps.places.Autocomplete(toInput);
+        }
+
+        // Load Google Maps API and initialize autocomplete
+        window.onload = initializeAutocomplete;
+
+        // Handle "Plan Trip" button click
+        document.getElementById('plan-trip').addEventListener('click', async () => {
+            const from = document.getElementById('from').value.trim();
+            const to = document.getElementById('to').value.trim();
+            const travelers = document.getElementById('travelers').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+            const preferences = Array.from(selectedPreferences);
+
+            if (!from || !to) {
+                alert('Please enter valid "From" and "To" locations.');
+                return;
+            }
+
+            try {
+                const itinerary = await ApiService.generateItinerary(from, to, duration, travelers, preferences);
+
+                document.getElementById('itinerary-title').innerText = `${from} to ${to}: ${duration}-Day Itinerary`;
+                const itineraryContent = document.getElementById('itinerary-content');
+                itineraryContent.innerHTML = itinerary.trip.days
+                    .map(
+                        (day) => `
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold mb-2">Day ${day.day}: ${day.title}</h3>
+                            ${day.schedule
+                                .map(
+                                    (activity) => `
+                                <div class="mb-4 p-4 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center mb-2">
+                                        <span class="text-blue-500 font-bold mr-2">${activity.time}</span>
+                                        <span>${activity.activity}</span>
+                                    </div>
+                                    <p>${activity.details}</p>
+                                </div>
+                            `
+                                )
+                                .join('')}
+                        </div>
+                    `
+                    )
+                    .join('');
+
+                document.querySelector('.w-full.flex.flex-col.gap-4.mt-6').classList.add('hidden'); // Hide the form
+                document.getElementById('itinerary').classList.remove('hidden'); // Show the itinerary
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+            }
+        });
+
+        // Handle "Save" button click to save itinerary as PDF
+        document.getElementById('save-pdf').addEventListener('click', () => {
+            const itineraryContent = document.getElementById('itinerary-content').innerHTML;
+            const pdf = new jsPDF();
+            pdf.html(itineraryContent, {
+                callback: function (doc) {
+                    doc.save('itinerary.pdf');
+                },
+                x: 10,
+                y: 10,
+            });
+        });
+
+        // Handle "Show Map" button click
+        document.getElementById('show-map').addEventListener('click', () => {
+            const mapContainer = document.getElementById('map-container');
+            mapContainer.classList.remove('hidden');
+
+            if (!map) {
+                map = new google.maps.Map(mapContainer, {
+                    center: { lat: -34.397, lng: 150.644 },
+                    zoom: 8,
+                });
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+            }
+
+            const from = document.getElementById('from').value.trim();
+            const to = document.getElementById('to').value.trim();
+
+            if (from && to) {
+                const request = {
+                    origin: from,
+                    destination: to,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                };
+
+                directionsService.route(request, (result, status) => {
+                    if (status === google.maps.DirectionsStatus.OK) {
+                        directionsRenderer.setDirections(result);
+                    } else {
+                        alert('Could not display directions due to: ' + status);
+                    }
+                });
+            }
+        });
+
+        // JavaScript to handle multi-selection
+        const selectedPreferences = new Set();
+
+        document.querySelectorAll('.preference-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                const value = button.getAttribute('data-value');
+                if (selectedPreferences.has(value)) {
+                    selectedPreferences.delete(value);
+                    button.classList.remove('bg-purple-600', 'text-white');
+                    button.classList.add('bg-gray-100', 'text-black');
+                } else {
+                    selectedPreferences.add(value);
+                    button.classList.remove('bg-gray-100', 'text-black');
+                    button.classList.add('bg-purple-600', 'text-white');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
